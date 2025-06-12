@@ -1,0 +1,30 @@
+import cv2
+import torch
+from realesrgan import RealESRGAN
+
+# Initialize Real-ESRGAN model
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = RealESRGAN(device, scale=2)  # scale=4 for x4, scale=2 for x2
+
+model.load_weights('weights/RealESRGAN_x2plus.pth')  # Use x4plus for scale=4, x2plus for scale=2
+
+cap = cv2.VideoCapture(0)
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    # Convert frame to RGB and process with Real-ESRGAN
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    sr_image = model.predict(rgb_frame)
+
+    # Convert back to BGR for OpenCV display
+    sr_bgr = cv2.cvtColor(sr_image, cv2.COLOR_RGB2BGR)
+    cv2.imshow('Super-Resolved Webcam', sr_bgr)
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
